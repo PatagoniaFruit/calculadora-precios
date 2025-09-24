@@ -27,6 +27,10 @@ window.APP_DATA = {
   {
     "id": 5,
     "name": "Espárragos"
+  },
+  {
+    "id": 6,
+    "name": "Aceite de Oliva"
   }
 ],
 
@@ -215,6 +219,13 @@ window.APP_DATA = {
     "origin": "Manzanillo",
     "destination": "Hong Kong",
     "cost": 4700
+  },
+  {
+    "id": 7,
+    "speciesId": 3,
+    "origin": "Salvador",
+    "destination": "Singapore",
+    "cost": 7612.8
   }
 ],
 
@@ -252,4 +263,5 @@ window.APP_DATA = {
 ]
 
 };
+
 

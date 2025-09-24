@@ -163,7 +163,7 @@
             </div>
             
             <!-- Data Management Section -->
-            <div class="card no-print">
+            <div class="card">
                 <h2 class="text-xl font-semibold mb-4 border-b pb-2">Visualización de Datos</h2>
                 <div class="p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 mb-6">
                     <p><b>Importante:</b> Los datos se leen del archivo <code>datos.js</code>. Para agregar, editar o eliminar registros, por favor use el editor de datos.</p>
@@ -354,7 +354,7 @@
                 const inputs = getInputs();
                 if (!inputs) return;
                 
-                let results = {};
+                let results = { calcBase: calcBase };
 
                 if (calcBase === 'proveedor_fob') {
                     const baseCostPerBox = parseFloat(getEl('fob-proveedor-cost').value);
@@ -371,7 +371,8 @@
                 } else if (calcBase === 'proveedor_cif') {
                     const cifProveedorCost = parseFloat(getEl('cif-proveedor-cost').value);
                     if (isNaN(cifProveedorCost) || cifProveedorCost < 0) { alert('Ingresa un costo CIF de proveedor válido.'); return; }
-
+                    
+                    results.cifProveedorCost = cifProveedorCost;
                     results.fobShipper = cifProveedorCost - inputs.freightPerBox;
                     let allOtherCosts = inputs.insurance;
                     if(inputs.type === 'maritime') allOtherCosts += inputs.services + inputs.extraCosts;
@@ -427,13 +428,22 @@
                             <span class="font-semibold border-t pt-1">Precio FOB Shipper:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobShipper)}</span>
                             </div><div class="border-t my-2"></div>`;
 
+                // --- Dynamic Labels for Final Results ---
+                let proveedorLabel = 'Precio Oferta Proveedor (FOB Shipper)';
+                let proveedorValue = data.fobShipper;
+
+                if (data.calcBase === 'proveedor_cif') {
+                    proveedorLabel = 'Precio Oferta Proveedor (CIF)';
+                    proveedorValue = data.cifProveedorCost;
+                }
+
                 const finalPrice = data.type === 'maritime' && data.freightPayer === 'buyer' ? data.fobClient : data.cifClient;
                 const finalLabel = data.type === 'maritime' && data.freightPayer === 'buyer' ? 'Precio Oferta Cliente (FOB):' : 'Precio Oferta Cliente (CIF/CFR):';
 
                 content += `<div class="grid grid-cols-2 gap-4 mt-4">
                                 <div class="text-center bg-blue-50 p-3 rounded-lg">
-                                    <p class="text-lg">Precio Oferta Proveedor (FOB Shipper)</p>
-                                    <p class="text-3xl font-bold text-blue-700">$${format(data.fobShipper)}</p>
+                                    <p class="text-lg">${proveedorLabel}</p>
+                                    <p class="text-3xl font-bold text-blue-700">$${format(proveedorValue)}</p>
                                 </div>
                                  <div class="text-center bg-green-50 p-3 rounded-lg">
                                     <p class="text-lg">${finalLabel}</p>
@@ -500,7 +510,7 @@
                 shippingTypeSelect.addEventListener('change', toggleShippingMode);
                 
                 // Remove the print button and its functionality
-                const printButton = getEl('print-btn');
+                const printButton = document.getElementById('print-btn');
                 if (printButton) {
                     printButton.remove();
                 }

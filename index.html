@@ -460,7 +460,7 @@
             function printResults() {
                 const resultsContent = getEl('results-content').innerHTML;
                 const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
+                printWindow.document.write(\`
                     <!DOCTYPE html>
                     <html lang="es">
                     <head>
@@ -483,10 +483,10 @@
                                 window.print();
                                 window.onafterprint = function() { window.close(); };
                             };
-                        </script>
+                        <\/script> 
                     </body>
                     </html>
-                `);
+                \`);
                 printWindow.document.close();
             }
 

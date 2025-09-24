@@ -177,9 +177,44 @@ window.APP_DATA = {
   {
     "id": 1,
     "speciesId": 2,
-    "origin": "México",
+    "origin": "Altamira",
     "destination": "Rotterdam",
+    "cost": 4800
+  },
+  {
+    "id": 2,
+    "speciesId": 2,
+    "origin": "Altamira",
+    "destination": "Algeciras",
     "cost": 5992
+  },
+  {
+    "id": 3,
+    "speciesId": 2,
+    "origin": "Manzanillo",
+    "destination": "Busan",
+    "cost": 6153
+  },
+  {
+    "id": 4,
+    "speciesId": 2,
+    "origin": "Manzanillo",
+    "destination": "Yokohama",
+    "cost": 4105
+  },
+  {
+    "id": 5,
+    "speciesId": 2,
+    "origin": "Manzanillo",
+    "destination": "Shangai",
+    "cost": 5465
+  },
+  {
+    "id": 6,
+    "speciesId": 2,
+    "origin": "Manzanillo",
+    "destination": "Hong Kong",
+    "cost": 4700
   }
 ],
 
@@ -217,3 +252,4 @@ window.APP_DATA = {
 ]
 
 };
+

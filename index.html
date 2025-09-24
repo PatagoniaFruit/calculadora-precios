@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Precios de Exportación</title>
+    <title>Calculadora de Precios de Exportación FCL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
         .card {
             background-color: white;
             border-radius: 0.75rem;
@@ -16,15 +18,32 @@
             margin-bottom: 1.5rem;
         }
         .btn {
-            display: inline-block; padding: 0.75rem 1.5rem; border-radius: 0.5rem;
-            font-weight: 600; text-align: center; transition: background-color 0.2s; cursor: pointer;
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-align: center;
+            transition: background-color 0.2s;
         }
-        .btn-primary { background-color: #4f46e5; color: white; }
-        .btn-primary:hover { background-color: #4338ca; }
-        .btn-secondary { background-color: #e5e7eb; color: #1f2937; }
-        .btn-secondary:hover { background-color: #d1d5db; }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
         input, select {
-            width: 100%; padding: 0.5rem; border-radius: 0.375rem; border: 1px solid #d1d5db;
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
         }
     </style>
 </head>
@@ -33,493 +52,294 @@
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-900">Calculadora de Precios de Exportación</h1>
-            <p class="text-gray-600 mt-2">Calcula precios para envíos marítimos (FCL) y aéreos.</p>
+            <p class="text-gray-600 mt-2">Calcula el precio de venta por caja para contenedores FCL.</p>
         </header>
 
-        <main id="main-content">
-            <!-- Calculator Section -->
+        <main>
+            <!-- Sección de la Calculadora -->
             <div class="card">
-                 <div class="mb-4">
-                    <label for="shipping-type" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Envío</label>
-                    <select id="shipping-type">
-                        <option value="maritime">Marítimo (FCL)</option>
-                        <option value="air">Aéreo</option>
-                    </select>
-                </div>
-                
-                <div class="mb-6 p-4 bg-indigo-50 rounded-lg">
-                    <label class="block text-sm font-medium text-gray-900 mb-2">Punto de Partida del Cálculo</label>
-                    <div class="flex items-center space-x-6">
-                        <label class="flex items-center">
-                            <input type="radio" name="calculation-base" value="proveedor" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" checked>
-                            <span class="ml-2 text-gray-800">Empezar con Costo del Proveedor</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="radio" name="calculation-base" value="cliente" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                            <span class="ml-2 text-gray-800">Empezar con Precio del Cliente</span>
-                        </label>
-                    </div>
-                </div>
-
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">1. Cálculo de Precios</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Left Column: Product & Costs -->
+                    <!-- Columna Izquierda: Datos del Producto y Costos -->
                     <div>
-                        <div class="flex space-x-4 mb-4">
-                            <div class="w-1/2">
-                                <label for="species" class="block text-sm font-medium text-gray-700 mb-1">Especie</label>
-                                <select id="species"></select>
-                            </div>
-                            <div class="w-1/2">
-                                <label for="format" class="block text-sm font-medium text-gray-700 mb-1">Formato</label>
-                                <select id="format"></select>
-                            </div>
-                        </div>
-                        <div id="input-base-cost-wrapper" class="mb-4">
-                            <label for="base-cost" class="block text-sm font-medium text-gray-700 mb-1">Costo Proveedor por Caja (FOB Shipper)</label>
-                            <input type="number" id="base-cost" placeholder="Ingresar costo del proveedor" step="0.01">
-                        </div>
-                        <div id="input-cif-price-wrapper" class="mb-4">
-                            <label for="cif-price" class="block text-sm font-medium text-gray-700 mb-1">Precio Cliente por Caja (CIF)</label>
-                            <input type="number" id="cif-price" placeholder="Ingresar oferta del cliente" step="0.01">
+                        <div class="mb-4">
+                            <label for="product" class="block text-sm font-medium text-gray-700 mb-1">Especie / Producto</label>
+                            <select id="product"></select>
                         </div>
                         <div class="mb-4">
+                            <label for="base-cost" class="block text-sm font-medium text-gray-700 mb-1">Costo Base por Caja (USD)</label>
+                            <input type="number" id="base-cost" placeholder="Ej: 25.50" step="0.01">
+                        </div>
+                         <div class="mb-4">
                             <label for="commission" class="block text-sm font-medium text-gray-700 mb-1">Comisión (%)</label>
-                            <input type="number" id="commission" placeholder="Ej: 5.34" value="8.34" step="0.01">
-                        </div>
-                        <div class="mb-4">
-                            <label for="insurance-total" class="block text-sm font-medium text-gray-700 mb-1">Seguro Total por Envío (USD)</label>
-                            <input type="number" id="insurance-total" placeholder="Ej: 235" step="0.01">
-                        </div>
-                        <div id="maritime-costs">
-                            <div class="mb-4">
-                                <label for="services-total" class="block text-sm font-medium text-gray-700 mb-1">Servicios Total FCL (USD)</label>
-                                <input type="number" id="services-total" placeholder="Ej: 500" step="0.01">
-                            </div>
-                            <div class="mb-4">
-                                <label for="extra-costs-total" class="block text-sm font-medium text-gray-700 mb-1">Costo Extra Total FCL (USD)</label>
-                                <input type="number" id="extra-costs-total" placeholder="Ej: 300" step="0.01">
-                            </div>
+                            <input type="number" id="commission" placeholder="Ej: 3" value="3" step="0.1">
                         </div>
                     </div>
 
-                    <!-- Right Column: Logistics -->
+                    <!-- Columna Derecha: Datos Logísticos -->
                     <div>
-                        <div id="air-options" class="hidden space-y-4">
-                            <div class="mb-4">
-                                <label for="air-boxes" class="block text-sm font-medium text-gray-700 mb-1">Número de Cajas del Envío</label>
-                                <input type="number" id="air-boxes" placeholder="Ej: 360">
-                            </div>
-                             <div class="mb-4">
-                                <label for="air-clearance" class="block text-sm font-medium text-gray-700 mb-1">Clearance Total (USD)</label>
-                                <input type="number" id="air-clearance" placeholder="Ej: 162" step="0.01">
-                            </div>
-                             <div class="mb-4">
-                                <label for="air-cooler" class="block text-sm font-medium text-gray-700 mb-1">Cooler Total (USD)</label>
-                                <input type="number" id="air-cooler" placeholder="Ej: 130" step="0.01">
-                            </div>
-                             <div class="mb-4">
-                                <label for="air-dta" class="block text-sm font-medium text-gray-700 mb-1">DTA Total (USD)</label>
-                                <input type="number" id="air-dta" placeholder="Ej: 40" step="0.01">
-                            </div>
-                             <div class="mb-4">
-                                <label for="air-handling" class="block text-sm font-medium text-gray-700 mb-1">Handling Total (USD)</label>
-                                <input type="number" id="air-handling" placeholder="Ej: 50" step="0.01">
-                            </div>
+                        <div class="mb-4">
+                            <label for="destination" class="block text-sm font-medium text-gray-700 mb-1">Destino (Flete)</label>
+                            <select id="destination"></select>
                         </div>
                         <div class="mb-4">
-                            <label for="route" class="block text-sm font-medium text-gray-700 mb-1">Ruta (Flete / Tarifa)</label>
-                            <select id="route"></select>
-                        </div>
-                        <div class="mb-4" id="maritime-sale-options">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Modalidad de Venta</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">¿Quién asume el costo logístico?</label>
                             <div class="flex items-center space-x-4 mt-2">
                                 <label class="flex items-center">
                                     <input type="radio" name="freight-payer" value="seller" class="w-auto" checked>
-                                    <span class="ml-2">CFR/CIF (Vendedor asume flete)</span>
+                                    <span class="ml-2">Vendedor (CFR/CIF)</span>
                                 </label>
                                 <label class="flex items-center">
                                     <input type="radio" name="freight-payer" value="buyer" class="w-auto">
-                                    <span class="ml-2">FOB (Comprador asume flete)</span>
+                                    <span class="ml-2">Comprador (FOB)</span>
                                 </label>
                             </div>
                         </div>
-                        <button id="calculate-btn" class="btn btn-primary w-full mt-10">Calcular</button>
+                        <button id="calculate-btn" class="btn btn-primary w-full mt-6">Calcular Precio</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Results Section -->
+            <!-- Sección de Resultados -->
             <div id="results-card" class="card hidden">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h2 class="text-xl font-semibold">Resultados del Cálculo</h2>
-                    <button id="print-btn" class="btn btn-secondary">Imprimir PDF</button>
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Resultados del Cálculo</h2>
+                <div id="results-content" class="space-y-3">
+                    <!-- Los resultados se inyectarán aquí -->
                 </div>
-                <div id="results-content" class="space-y-3"></div>
             </div>
             
-            <!-- Data Management Section -->
+            <!-- Sección para Gestionar Datos -->
             <div class="card">
-                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Visualización de Datos</h2>
-                <div class="p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 mb-6">
-                    <p><b>Importante:</b> Los datos se leen del archivo <code>datos.js</code>. Para agregar, editar o eliminar registros, por favor modifique ese archivo directamente usando el editor.</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Species Management -->
-                    <div>
-                        <h3 class="text-lg font-medium mb-3">Especies</h3>
-                        <div id="species-list" class="mb-3 space-y-2 max-h-48 overflow-y-auto p-2 border rounded"></div>
-                    </div>
-                    <!-- Formats Management -->
-                    <div>
-                        <h3 class="text-lg font-medium mb-3">Formatos</h3>
-                         <div id="format-list" class="mb-3 space-y-2 max-h-48 overflow-y-auto p-2 border rounded"></div>
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">2. Gestionar Datos</h2>
+                <p class="text-sm text-gray-500 mb-4">Tus listas de productos y fletes se guardan automáticamente en este navegador.</p>
+
+                <!-- Gestionar Productos -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-3">Productos</h3>
+                    <div id="product-list" class="mb-3 space-y-2"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <input type="text" id="new-product-name" placeholder="Nombre Especie" class="sm:col-span-1">
+                        <input type="text" id="new-product-format" placeholder="Formato (Ej: Caja 10kg)" class="sm:col-span-1">
+                        <input type="number" id="new-product-boxes" placeholder="Cajas por Contenedor" class="sm:col-span-1">
+                        <button id="add-product-btn" class="btn btn-secondary sm:col-span-1">Agregar Producto</button>
                     </div>
                 </div>
-                 <div class="border-t mt-8 pt-6">
-                     <!-- Maritime Freights Management -->
-                    <div id="maritime-freight-manager">
-                        <h3 class="text-lg font-medium mb-3">Fletes Marítimos (por Contenedor)</h3>
-                        <div id="freight-list" class="mb-3 space-y-2 max-h-48 overflow-y-auto p-2 border rounded"></div>
+
+                <!-- Gestionar Fletes -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3">Fletes por Destino</h3>
+                    <div id="freight-list" class="mb-3 space-y-2"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input type="text" id="new-freight-destination" placeholder="Destino" class="sm:col-span-1">
+                        <input type="number" id="new-freight-cost" placeholder="Costo Flete (USD)" class="sm:col-span-1">
+                        <button id="add-freight-btn" class="btn btn-secondary sm:col-span-1">Agregar Flete</button>
                     </div>
-                    <!-- Air Rates Management -->
-                    <div id="air-rate-manager" class="hidden">
-                        <h3 class="text-lg font-medium mb-3">Tarifas Aéreas (por Kg)</h3>
-                        <div id="air-rate-list" class="mb-3 space-y-2 max-h-48 overflow-y-auto p-2 border rounded"></div>
-                    </div>
-                 </div>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- Data file -->
-    <script src="datos.js"></script>
-
-    <!-- App logic -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof window.APP_DATA === 'undefined') {
-                console.warn("datos.js no encontrado o vacío. Empezando con datos por defecto.");
-                window.APP_DATA = {
-                    species: [],
-                    formats: [],
-                    maritimeFreights: [],
-                    airRates: []
-                };
-            }
+        // --- CARGA DE DATOS DESDE LOCALSTORAGE O DATOS INICIALES ---
+        let products = JSON.parse(localStorage.getItem('exportCalculatorProducts')) || [
+            { id: 1, name: 'Arándanos Premium', format: 'Caja 1.5kg', boxesPerContainer: 10800 },
+            { id: 2, name: 'Cerezas', format: 'Caja 5kg', boxesPerContainer: 3960 },
+            { id: 3, name: 'Manzanas Fuji', format: 'Caja 18kg', boxesPerContainer: 1176 }
+        ];
 
-            // --- DOM ELEMENTS ---
-            const getEl = (id) => document.getElementById(id);
-            const speciesSelect = getEl('species');
-            const formatSelect = getEl('format');
-            const routeSelect = getEl('route');
-            const shippingTypeSelect = getEl('shipping-type');
+        let freightCosts = JSON.parse(localStorage.getItem('exportCalculatorFreights')) || [
+            { id: 1, destination: 'Rotterdam', cost: 3500 },
+            { id: 2, destination: 'Shanghai', cost: 4200 },
+            { id: 3, destination: 'Miami', cost: 2800 }
+        ];
 
-            // --- RENDER FUNCTIONS (UI Updates) ---
-            function renderSpecies(selectElements) {
-                const speciesListDiv = getEl('species-list');
-                speciesListDiv.innerHTML = '';
-                selectElements.forEach(sel => { sel.innerHTML = ''; });
+        // --- FUNCIONES PARA GUARDAR DATOS ---
+        function saveProducts() {
+            localStorage.setItem('exportCalculatorProducts', JSON.stringify(products));
+        }
 
-                window.APP_DATA.species.forEach(s => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'flex justify-between items-center bg-gray-50 p-2 rounded text-sm';
-                    itemDiv.innerHTML = `<span><b>${s.name}</b></span>`;
-                    speciesListDiv.appendChild(itemDiv);
-                    
-                    selectElements.forEach(sel => {
-                        const option = document.createElement('option');
-                        option.value = s.id;
-                        option.textContent = s.name;
-                        sel.appendChild(option);
-                    });
-                });
-            }
+        function saveFreights() {
+            localStorage.setItem('exportCalculatorFreights', JSON.stringify(freightCosts));
+        }
 
-            function renderFormatsForSpecies(speciesId, selectElement = formatSelect) {
-                const relevantFormats = window.APP_DATA.formats.filter(f => f.speciesId === speciesId);
-                selectElement.innerHTML = '';
-                relevantFormats.forEach(f => {
-                    const option = document.createElement('option');
-                    option.value = f.id;
-                    option.textContent = f.name;
-                    selectElement.appendChild(option);
-                });
-            }
-            
-            function renderRoutes(speciesId, type) {
-                routeSelect.innerHTML = '';
-                if (type === 'maritime') {
-                    const freights = window.APP_DATA.maritimeFreights.filter(f => f.speciesId === speciesId);
-                    routeSelect.innerHTML = freights.length > 0 ? '' : '<option>Sin fletes para esta especie</option>';
-                    freights.forEach(f => {
-                        const option = document.createElement('option');
-                        option.value = f.id;
-                        option.textContent = `${f.origin} -> ${f.destination} - $${f.cost.toLocaleString('en-US')}`;
-                        routeSelect.appendChild(option);
-                    });
-                } else { // air
-                    const rates = window.APP_DATA.airRates.filter(r => r.speciesId === speciesId);
-                    routeSelect.innerHTML = rates.length > 0 ? '' : '<option>Sin tarifas para esta especie</option>';
-                    rates.forEach(r => {
-                        const option = document.createElement('option');
-                        option.value = r.id;
-                        option.textContent = `${r.origin} -> ${r.destination} - $${r.ratePerKg.toFixed(2)}/kg`;
-                        routeSelect.appendChild(option);
-                    });
-                }
-            }
+        // --- REFERENCIAS A ELEMENTOS DEL DOM ---
+        const productSelect = document.getElementById('product');
+        const destinationSelect = document.getElementById('destination');
+        const productListDiv = document.getElementById('product-list');
+        const freightListDiv = document.getElementById('freight-list');
 
-            function renderManagementLists() {
-                const formatListDiv = getEl('format-list');
-                formatListDiv.innerHTML = '';
-                window.APP_DATA.formats.forEach(f => {
-                    const speciesName = window.APP_DATA.species.find(s => s.id === f.speciesId)?.name || 'N/A';
-                    const item = document.createElement('div');
-                    item.className = 'flex justify-between items-center bg-gray-50 p-2 rounded text-sm';
-                    item.innerHTML = `<span>[${speciesName}] <b>${f.name}</b> (${f.weightPerBox}kg)</span>`;
-                    formatListDiv.appendChild(item);
-                });
+        // --- FUNCIONES PARA RENDERIZAR DATOS ---
+        function renderProducts() {
+            productSelect.innerHTML = '';
+            productListDiv.innerHTML = '';
+            products.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = `${p.name} (${p.format}) - ${p.boxesPerContainer} cajas/FCL`;
+                productSelect.appendChild(option);
 
-                const freightListDiv = getEl('freight-list');
-                freightListDiv.innerHTML = '';
-                window.APP_DATA.maritimeFreights.forEach(f => {
-                    const speciesName = window.APP_DATA.species.find(s => s.id === f.speciesId)?.name || 'N/A';
-                    const item = document.createElement('div');
-                    item.className = 'flex justify-between items-center bg-gray-50 p-2 rounded text-sm';
-                    item.innerHTML = `<span>[${speciesName}] ${f.origin} -> ${f.destination} - $${f.cost.toLocaleString('en-US')}</span>`;
-                    freightListDiv.appendChild(item);
-                });
-                
-                const airRateListDiv = getEl('air-rate-list');
-                airRateListDiv.innerHTML = '';
-                window.APP_DATA.airRates.forEach(r => {
-                    const speciesName = window.APP_DATA.species.find(s => s.id === r.speciesId)?.name || 'N/A';
-                    const item = document.createElement('div');
-                    item.className = 'flex justify-between items-center bg-gray-50 p-2 rounded text-sm';
-                    item.innerHTML = `<span>[${speciesName}] ${r.origin} -> ${r.destination} - $${r.ratePerKg.toFixed(2)}/kg</span>`;
-                    airRateListDiv.appendChild(item);
-                });
-            }
-
-            // --- CALCULATION LOGIC ---
-            function getInputs() {
-                const type = shippingTypeSelect.value;
-                const selectedFormatId = parseInt(formatSelect.value);
-                const format = window.APP_DATA.formats.find(f => f.id === selectedFormatId);
-                const selectedRouteId = parseInt(routeSelect.value);
-                const commission = parseFloat(getEl('commission').value) || 0;
-                const insuranceTotal = parseFloat(getEl('insurance-total').value) || 0;
-
-                if (!format || !selectedRouteId) return null;
-
-                if (type === 'maritime') {
-                    const route = window.APP_DATA.maritimeFreights.find(f => f.id === selectedRouteId);
-                    if (!route || !format.boxesPerContainer) { alert('Faltan datos de FCL o de ruta marítima.'); return null; }
-                    const servicesTotal = parseFloat(getEl('services-total').value) || 0;
-                    const extraCostsTotal = parseFloat(getEl('extra-costs-total').value) || 0;
-                    return {
-                        type, format, route, commission,
-                        boxes: format.boxesPerContainer,
-                        insurance: insuranceTotal / format.boxesPerContainer,
-                        freightPerBox: route.cost / format.boxesPerContainer,
-                        services: servicesTotal / format.boxesPerContainer,
-                        extraCosts: extraCostsTotal / format.boxesPerContainer,
-                        freightPayer: document.querySelector('input[name="freight-payer"]:checked').value
-                    };
-                } else { // air
-                    const route = window.APP_DATA.airRates.find(r => r.id === selectedRouteId);
-                    const boxes = parseInt(getEl('air-boxes').value);
-                    if (!route || !boxes || boxes <= 0) { alert('Faltan datos de tarifa aérea o número de cajas.'); return null; }
-                    const clearance = (parseFloat(getEl('air-clearance').value) || 0) / boxes;
-                    const cooler = (parseFloat(getEl('air-cooler').value) || 0) / boxes;
-                    const dta = (parseFloat(getEl('air-dta').value) || 0) / boxes;
-                    const handling = (parseFloat(getEl('air-handling').value) || 0) / boxes;
-                    return {
-                        type, format, route, commission, boxes,
-                        insurance: insuranceTotal / boxes,
-                        freightPerBox: format.weightPerBox * route.ratePerKg,
-                        clearance, cooler, dta, handling,
-                    };
-                }
-            }
-
-            function calculateAndDisplay() {
-                const calcBase = document.querySelector('input[name="calculation-base"]:checked').value;
-                const inputs = getInputs();
-                if (!inputs) return;
-                
-                let results = {};
-                if (calcBase === 'proveedor') {
-                    const baseCostPerBox = parseFloat(getEl('base-cost').value);
-                    if (isNaN(baseCostPerBox) || baseCostPerBox < 0) { alert('Ingresa un costo de proveedor válido.'); return; }
-                    
-                    results.fobShipper = baseCostPerBox;
-                    let allOtherCosts = inputs.insurance;
-                    if(inputs.type === 'maritime') allOtherCosts += inputs.services + inputs.extraCosts;
-                    else allOtherCosts += inputs.clearance + inputs.cooler + inputs.dta + inputs.handling;
-                    
-                    results.fobClient = (results.fobShipper + allOtherCosts) / (1 - (inputs.commission / 100));
-                    results.cifClient = results.fobClient + inputs.freightPerBox;
-                    
-                } else { // 'cliente'
-                    const cifPrice = parseFloat(getEl('cif-price').value);
-                    if (isNaN(cifPrice) || cifPrice <= 0) { alert('Ingresa un precio de cliente válido.'); return; }
-                    
-                    results.cifClient = cifPrice;
-                    results.fobClient = results.cifClient - inputs.freightPerBox;
-                    const commissionValue = results.fobClient * (inputs.commission / 100);
-                    
-                    let allOtherCosts = inputs.insurance;
-                     if(inputs.type === 'maritime') allOtherCosts += inputs.services + inputs.extraCosts;
-                    else allOtherCosts += inputs.clearance + inputs.cooler + inputs.dta + inputs.handling;
-
-                    results.fobShipper = results.fobClient - commissionValue - allOtherCosts;
-                }
-                displayResults({ ...inputs, ...results });
-            }
-            
-            function displayResults(data) {
-                const resultsCard = getEl('results-card');
-                const resultsContent = getEl('results-content');
-                const format = (v) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                const speciesName = window.APP_DATA.species.find(s => s.id === data.format.speciesId)?.name || 'N/A';
-                let content = `<p><strong>Resumen para:</strong> ${speciesName} (${data.format.name}) a ${data.route.destination}</p><div class="border-t my-2"></div>`;
-                
-                content += `<div class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
-                    <span class="font-semibold border-b pb-1 col-span-2 text-lg">Desglose de Costos por Caja</span>
-                    <span>Precio FOB Cliente:</span><span class="font-semibold text-right">$ ${format(data.fobClient)}</span>
-                    <span>(-) Flete:</span><span class="text-right">$ ${format(data.freightPerBox)}</span>
-                    <span class="font-semibold border-t pt-1">Precio CIF Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.cifClient)}</span>
-                    <div class="col-span-2 my-2"></div>
-                    <span>Precio FOB Cliente:</span><span class="font-semibold text-right">$ ${format(data.fobClient)}</span>`;
-
-                if (data.type === 'air') {
-                    content += `<span>(-) Clearance:</span><span class="text-right">$ ${format(data.clearance)}</span>
-                                <span>(-) Cooler:</span><span class="text-right">$ ${format(data.cooler)}</span>
-                                <span>(-) DTA:</span><span class="text-right">$ ${format(data.dta)}</span>
-                                <span>(-) Handling:</span><span class="text-right">$ ${format(data.handling)}</span>`;
-                }
-                 if (data.type === 'maritime') {
-                    content += `<span>(-) Servicios:</span><span class="text-right">$ ${format(data.services)}</span>
-                                <span>(-) Costo Extra:</span><span class="text-right">$ ${format(data.extraCosts)}</span>`;
-                 }
-                content += `<span>(-) Seguro:</span><span class="text-right">$ ${format(data.insurance)}</span>
-                            <span>(-) Comisión (${data.commission}%):</span><span class="text-right">$ ${format(data.fobClient * data.commission / 100)}</span>
-                            <span class="font-semibold border-t pt-1">Precio FOB Shipper:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobShipper)}</span>
-                            </div><div class="border-t my-2"></div>`;
-
-                const finalPrice = data.type === 'maritime' && data.freightPayer === 'buyer' ? data.fobClient : data.cifClient;
-                const finalLabel = data.type === 'maritime' && data.freightPayer === 'buyer' ? 'Precio Oferta Cliente (FOB):' : 'Precio Oferta Cliente (CIF/CFR):';
-
-                content += `<div class="grid grid-cols-2 gap-4 mt-4">
-                                <div class="text-center bg-blue-50 p-3 rounded-lg">
-                                    <p class="text-lg">Precio Oferta Proveedor (FOB Shipper)</p>
-                                    <p class="text-3xl font-bold text-blue-700">$${format(data.fobShipper)}</p>
-                                </div>
-                                 <div class="text-center bg-green-50 p-3 rounded-lg">
-                                    <p class="text-lg">${finalLabel}</p>
-                                    <p class="text-3xl font-bold text-green-700">$${format(finalPrice)}</p>
-                                </div>
-                            </div>`;
-
-                resultsContent.innerHTML = content;
-                resultsCard.classList.remove('hidden');
-            }
-            
-            function printResults() {
-                const resultsContent = getEl('results-content').innerHTML;
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html lang="es">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Resultados del Cálculo</title>
-                        <script src="https://cdn.tailwindcss.com"></script>
-                        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-                        <style>
-                            body { 
-                                font-family: 'Inter', sans-serif; 
-                                margin: 2rem;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <h2 class="text-xl font-semibold mb-4 border-b pb-2">Resultados del Cálculo</h2>
-                        <div class="space-y-3">${resultsContent}</div>
-                        <script>
-                            window.onload = function() {
-                                window.print();
-                                window.onafterprint = function() { window.close(); };
-                            };
-                        </script>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-            }
-
-            // --- UI TOGGLING AND EVENT HANDLERS ---
-            function toggleShippingMode() {
-                const type = shippingTypeSelect.value;
-                getEl('maritime-costs').classList.toggle('hidden', type !== 'maritime');
-                getEl('maritime-sale-options').classList.toggle('hidden', type !== 'maritime');
-                getEl('maritime-freight-manager').classList.toggle('hidden', type !== 'maritime');
-                getEl('air-options').classList.toggle('hidden', type !== 'air');
-                getEl('air-rate-manager').classList.toggle('hidden', type !== 'air');
-                renderRoutes(parseInt(speciesSelect.value), type);
-                getEl('results-card').classList.add('hidden');
-            }
-
-            function toggleCalculationBase() {
-                const calcBase = document.querySelector('input[name="calculation-base"]:checked').value;
-                const baseCostInput = getEl('base-cost');
-                const cifPriceInput = getEl('cif-price');
-
-                if (calcBase === 'proveedor') {
-                    baseCostInput.disabled = false;
-                    baseCostInput.classList.remove('bg-gray-200');
-                    cifPriceInput.disabled = true;
-                    cifPriceInput.classList.add('bg-gray-200');
-                    cifPriceInput.value = '';
-                } else { // 'cliente'
-                    cifPriceInput.disabled = false;
-                    cifPriceInput.classList.remove('bg-gray-200');
-                    baseCostInput.disabled = true;
-                    baseCostInput.classList.add('bg-gray-200');
-                    baseCostInput.value = '';
-                }
-                 getEl('results-card').classList.add('hidden');
-            }
-            
-            function renderAllUI() {
-                const allSpeciesSelects = [speciesSelect]; // Main selectors
-                renderSpecies(allSpeciesSelects);
-                const selectedSpeciesId = parseInt(speciesSelect.value);
-                if (selectedSpeciesId) {
-                    renderFormatsForSpecies(selectedSpeciesId);
-                    renderRoutes(selectedSpeciesId, shippingTypeSelect.value);
-                }
-                renderManagementLists();
-            }
-            
-            // --- INITIALIZATION ---
-            document.querySelectorAll('input[name="calculation-base"]').forEach(radio => radio.addEventListener('change', toggleCalculationBase));
-            speciesSelect.addEventListener('change', (e) => {
-                const speciesId = parseInt(e.target.value);
-                renderFormatsForSpecies(speciesId);
-                renderRoutes(speciesId, shippingTypeSelect.value);
+                const productDiv = document.createElement('div');
+                productDiv.className = 'flex justify-between items-center bg-gray-50 p-2 rounded';
+                productDiv.innerHTML = `
+                    <span>${p.name} (${p.format}) - ${p.boxesPerContainer} cajas/FCL</span>
+                    <button class="text-red-500 hover:text-red-700" onclick="removeProduct(${p.id})">Eliminar</button>
+                `;
+                productListDiv.appendChild(productDiv);
             });
-            getEl('calculate-btn').addEventListener('click', calculateAndDisplay);
-            shippingTypeSelect.addEventListener('change', toggleShippingMode);
-            getEl('print-btn').addEventListener('click', printResults);
+        }
+
+        function renderFreights() {
+            destinationSelect.innerHTML = '';
+            freightListDiv.innerHTML = '';
+            freightCosts.forEach(f => {
+                const option = document.createElement('option');
+                option.value = f.id;
+                option.textContent = `${f.destination} - $${f.cost.toLocaleString('en-US')} USD`;
+                destinationSelect.appendChild(option);
+
+                const freightDiv = document.createElement('div');
+                freightDiv.className = 'flex justify-between items-center bg-gray-50 p-2 rounded';
+                freightDiv.innerHTML = `
+                    <span>${f.destination} - $${f.cost.toLocaleString('en-US')} USD</span>
+                    <button class="text-red-500 hover:text-red-700" onclick="removeFreight(${f.id})">Eliminar</button>
+                `;
+                freightListDiv.appendChild(freightDiv);
+            });
+        }
+
+        // --- FUNCIONES DE GESTIÓN DE DATOS ---
+        function addProduct() {
+            const name = document.getElementById('new-product-name').value;
+            const format = document.getElementById('new-product-format').value;
+            const boxes = parseInt(document.getElementById('new-product-boxes').value);
             
-            // Initial UI setup
-            toggleShippingMode();
-            toggleCalculationBase();
-            renderAllUI();
-        });
+            if (name && format && boxes > 0) {
+                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                products.push({ id: newId, name, format, boxesPerContainer: boxes });
+                saveProducts(); // Guardar
+                renderProducts();
+                document.getElementById('new-product-name').value = '';
+                document.getElementById('new-product-format').value = '';
+                document.getElementById('new-product-boxes').value = '';
+            } else {
+                alert('Por favor, completa todos los campos del producto.');
+            }
+        }
+        
+        function removeProduct(id) {
+            products = products.filter(p => p.id !== id);
+            saveProducts(); // Guardar
+            renderProducts();
+        }
+
+        function addFreight() {
+            const destination = document.getElementById('new-freight-destination').value;
+            const cost = parseFloat(document.getElementById('new-freight-cost').value);
+
+            if (destination && cost > 0) {
+                const newId = freightCosts.length > 0 ? Math.max(...freightCosts.map(f => f.id)) + 1 : 1;
+                freightCosts.push({ id: newId, destination, cost });
+                saveFreights(); // Guardar
+                renderFreights();
+                document.getElementById('new-freight-destination').value = '';
+                document.getElementById('new-freight-cost').value = '';
+            } else {
+                alert('Por favor, completa todos los campos de flete.');
+            }
+        }
+        
+        function removeFreight(id) {
+            freightCosts = freightCosts.filter(f => f.id !== id);
+            saveFreights(); // Guardar
+            renderFreights();
+        }
+
+        // --- LÓGICA DE LA CALCULADORA ---
+        function calculatePrice() {
+            const baseCostPerBox = parseFloat(document.getElementById('base-cost').value);
+            const commissionPercentage = parseFloat(document.getElementById('commission').value);
+            const selectedProductId = parseInt(productSelect.value);
+            const selectedFreightId = parseInt(destinationSelect.value);
+            const freightPayer = document.querySelector('input[name="freight-payer"]:checked').value;
+
+            if (isNaN(baseCostPerBox) || baseCostPerBox <= 0) {
+                alert('Ingresa un costo base válido.');
+                return;
+            }
+
+            const product = products.find(p => p.id === selectedProductId);
+            const freight = freightCosts.find(f => f.id === selectedFreightId);
+            
+            if (!product || !freight) {
+                alert('Error al encontrar datos de producto o flete.');
+                return;
+            }
+
+            const boxes = product.boxesPerContainer;
+            const totalBaseCost = baseCostPerBox * boxes;
+            const totalCommission = totalBaseCost * (commissionPercentage / 100);
+            const freightCost = freight.cost;
+            let totalContainerCost;
+
+            if (freightPayer === 'seller') {
+                totalContainerCost = totalBaseCost + totalCommission + freightCost;
+            } else {
+                totalContainerCost = totalBaseCost + totalCommission;
+            }
+            
+            const finalPricePerBox = totalContainerCost / boxes;
+            
+            displayResults({
+                productName: product.name,
+                destination: freight.destination,
+                boxesPerContainer: boxes,
+                baseCostPerBox: baseCostPerBox,
+                totalBaseCost: totalBaseCost,
+                commissionPercentage: commissionPercentage,
+                totalCommission: totalCommission,
+                freightCost: freightCost,
+                freightPayer: freightPayer,
+                totalContainerCost: totalContainerCost,
+                finalPricePerBox: finalPricePerBox
+            });
+        }
+        
+        function displayResults(data) {
+            const resultsCard = document.getElementById('results-card');
+            const resultsContent = document.getElementById('results-content');
+
+            resultsContent.innerHTML = `
+                <p><strong>Resumen para:</strong> ${data.productName} a ${data.destination}</p>
+                <div class="border-t my-2"></div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <span>Cajas por contenedor:</span><span class="font-medium text-right">${data.boxesPerContainer}</span>
+                    <span>Costo base por caja:</span><span class="font-medium text-right">$${data.baseCostPerBox.toFixed(2)}</span>
+                    <span>Costo base total FCL:</span><span class="font-medium text-right">$${data.totalBaseCost.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                    <span>Comisión (${data.commissionPercentage}%):</span><span class="font-medium text-right">$${data.totalCommission.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                    <span>Costo logístico (Flete):</span><span class="font-medium text-right">$${data.freightCost.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                    <span class="col-span-2 pt-2 text-sm text-gray-600">
+                        ${data.freightPayer === 'seller' ? 'El flete está incluido en el precio de venta.' : 'El flete es pagado por el comprador (no incluido en el precio).'}
+                    </span>
+                </div>
+                <div class="border-t my-2"></div>
+                <div class="text-center mt-4">
+                    <p class="text-lg">Precio de Venta por Caja:</p>
+                    <p class="text-3xl font-bold text-indigo-600">$${data.finalPricePerBox.toFixed(2)} USD</p>
+                </div>
+            `;
+            resultsCard.classList.remove('hidden');
+        }
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('add-product-btn').addEventListener('click', addProduct);
+        document.getElementById('add-freight-btn').addEventListener('click', addFreight);
+        document.getElementById('calculate-btn').addEventListener('click', calculatePrice);
+        
+        // --- INICIALIZACIÓN ---
+        window.onload = () => {
+            renderProducts();
+            renderFreights();
+        };
     </script>
 </body>
 </html>
-

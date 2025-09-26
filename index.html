@@ -73,11 +73,33 @@
                                 <label for="species" class="block text-sm font-medium text-gray-700 mb-1">Especie</label>
                                 <select id="species"></select>
                             </div>
-                            <div class="w-1/2">
+                            <div id="format-select-wrapper" class="w-1/2">
                                 <label for="format" class="block text-sm font-medium text-gray-700 mb-1">Formato</label>
                                 <select id="format"></select>
                             </div>
                         </div>
+
+                        <!-- Manual Product Inputs -->
+                        <div id="manual-product-wrapper" class="hidden space-y-4 mb-4 p-4 border rounded-lg bg-gray-50">
+                            <h4 class="text-sm font-medium text-gray-800 text-center">Datos del Producto Manual</h4>
+                            <div>
+                                <label for="manual-species-name" class="block text-xs font-medium text-gray-600">Nombre Especie</label>
+                                <input type="text" id="manual-species-name" placeholder="Especie Manual" class="text-sm">
+                            </div>
+                            <div>
+                                <label for="manual-format-name" class="block text-xs font-medium text-gray-600">Nombre Formato</label>
+                                <input type="text" id="manual-format-name" placeholder="Formato Manual" class="text-sm">
+                            </div>
+                            <div id="manual-maritime-product-fields">
+                                <label for="manual-boxes-fcl" class="block text-xs font-medium text-gray-600">Cajas por Contenedor (FCL)</label>
+                                <input type="number" id="manual-boxes-fcl" placeholder="Ej: 2200" class="text-sm">
+                            </div>
+                            <div id="manual-air-product-fields" class="hidden">
+                                <label for="manual-weight" class="block text-xs font-medium text-gray-600">Peso Bruto por Caja (Kg)</label>
+                                <input type="number" id="manual-weight" step="0.01" placeholder="Ej: 8.19" class="text-sm">
+                            </div>
+                        </div>
+
                         <div id="input-fob-proveedor-wrapper" class="mb-4">
                             <label for="fob-proveedor-cost" class="block text-sm font-medium text-gray-700 mb-1">Costo Proveedor por Caja (FOB Shipper)</label>
                             <input type="number" id="fob-proveedor-cost" placeholder="Ingresar costo FOB proveedor" step="0.01">
@@ -239,6 +261,11 @@
                         sel.appendChild(option);
                     });
                 });
+                // Add manual option at the end of the main species selector
+                 const manualOption = document.createElement('option');
+                manualOption.value = 'manual';
+                manualOption.textContent = '--- Ingresar Especie/Formato Manual ---';
+                speciesSelect.appendChild(manualOption);
             }
 
             function renderFormatsForSpecies(speciesId, selectElement = formatSelect) {
@@ -316,13 +343,35 @@
             // --- CALCULATION LOGIC ---
             function getInputs() {
                 const type = shippingTypeSelect.value;
-                const selectedFormatId = parseInt(formatSelect.value);
-                const format = window.APP_DATA.formats.find(f => f.id === selectedFormatId);
+                const selectedSpeciesValue = speciesSelect.value;
+                let format;
+
+                if (selectedSpeciesValue === 'manual') {
+                    const weightPerBox = parseFloat(getEl('manual-weight').value) || 0;
+                    const boxesPerContainer = parseInt(getEl('manual-boxes-fcl').value) || null;
+                    if (type === 'maritime' && !boxesPerContainer) {
+                        alert('Ingrese el número de cajas por contenedor para el producto manual.');
+                        return null;
+                    }
+                    if (type === 'air' && weightPerBox <= 0) {
+                        alert('Ingrese el peso por caja para el producto manual.');
+                        return null;
+                    }
+                    format = {
+                        id: 'manual', speciesId: 'manual',
+                        name: getEl('manual-format-name').value || 'Formato Manual',
+                        weightPerBox: weightPerBox, boxesPerContainer: boxesPerContainer
+                    };
+                } else {
+                    const selectedFormatId = parseInt(formatSelect.value);
+                    format = window.APP_DATA.formats.find(f => f.id === selectedFormatId);
+                }
+
+                if (!format) { alert('Seleccione un formato válido.'); return null; }
+
                 const selectedRouteValue = routeSelect.value;
                 const commission = parseFloat(getEl('commission').value) || 0;
                 const insuranceTotal = parseFloat(getEl('insurance-total').value) || 0;
-
-                if (!format) return null;
 
                 let route;
                 if (selectedRouteValue === 'manual') {
@@ -337,7 +386,7 @@
                     }
                 } else {
                     const selectedRouteId = parseInt(selectedRouteValue);
-                    if (!selectedRouteId) return null;
+                    if (!selectedRouteId) { alert('Seleccione una ruta válida.'); return null; }
                     if (type === 'maritime') {
                         route = window.APP_DATA.maritimeFreights.find(f => f.id === selectedRouteId);
                     } else {
@@ -361,7 +410,7 @@
                     };
                 } else { // air
                     const boxes = parseInt(getEl('air-boxes').value);
-                    if (!boxes || boxes <= 0) { alert('Faltan datos de tarifa aérea o número de cajas.'); return null; }
+                    if (!boxes || boxes <= 0) { alert('Faltan datos del número de cajas del envío.'); return null; }
                     const clearance = (parseFloat(getEl('air-clearance').value) || 0) / boxes;
                     const cooler = (parseFloat(getEl('air-cooler').value) || 0) / boxes;
                     const dta = (parseFloat(getEl('air-dta').value) || 0) / boxes;
@@ -428,7 +477,14 @@
                 const resultsCard = getEl('results-card');
                 const resultsContent = getEl('results-content');
                 const format = (v) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                const speciesName = window.APP_DATA.species.find(s => s.id === data.format.speciesId)?.name || 'N/A';
+                
+                let speciesName;
+                 if (data.format.speciesId === 'manual') {
+                    speciesName = getEl('manual-species-name').value || 'Especie Manual';
+                } else {
+                    speciesName = window.APP_DATA.species.find(s => s.id === data.format.speciesId)?.name || 'N/A';
+                }
+
                 let content = `<p><strong>Resumen para:</strong> ${speciesName} (${data.format.name}) a ${data.route.destination}</p><div class="border-t my-2"></div>`;
                 
                 content += `<div class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
@@ -488,7 +544,11 @@
                 if(maritimeFreightManager) maritimeFreightManager.classList.toggle('hidden', type !== 'maritime');
                 if(airRateManager) airRateManager.classList.toggle('hidden', type !== 'air');
 
-                // Toggle manual input fields visibility
+                const isManualProduct = speciesSelect.value === 'manual';
+                if (isManualProduct) {
+                    getEl('manual-maritime-product-fields').classList.toggle('hidden', type !== 'maritime');
+                    getEl('manual-air-product-fields').classList.toggle('hidden', type !== 'air');
+                }
                 const manualMaritime = getEl('manual-maritime-wrapper');
                 const manualAir = getEl('manual-air-wrapper');
                 if(manualMaritime) manualMaritime.classList.toggle('hidden', type !== 'maritime');
@@ -496,7 +556,6 @@
                 
                 renderRoutes(parseInt(speciesSelect.value), type);
                 getEl('results-card').classList.add('hidden');
-                // Hide manual freight wrapper initially
                 getEl('manual-freight-wrapper').classList.add('hidden');
             }
 
@@ -533,9 +592,20 @@
             function initApp() {
                 document.querySelectorAll('input[name="calculation-base"]').forEach(radio => radio.addEventListener('change', toggleCalculationBase));
                 speciesSelect.addEventListener('change', (e) => {
-                    const speciesId = parseInt(e.target.value);
-                    renderFormatsForSpecies(speciesId);
-                    renderRoutes(speciesId, shippingTypeSelect.value);
+                    const speciesId = e.target.value;
+                    if (speciesId === 'manual') {
+                        getEl('manual-product-wrapper').classList.remove('hidden');
+                        getEl('format-select-wrapper').classList.add('hidden');
+                        routeSelect.innerHTML = '<option value="manual">--- Ingresar Flete/Tarifa Manual ---</option>';
+                        routeSelect.value = 'manual';
+                        routeSelect.dispatchEvent(new Event('change'));
+                        toggleShippingMode(); // Update manual fields based on shipping type
+                    } else {
+                        getEl('manual-product-wrapper').classList.add('hidden');
+                        getEl('format-select-wrapper').classList.remove('hidden');
+                        renderFormatsForSpecies(parseInt(speciesId));
+                        renderRoutes(parseInt(speciesId), shippingTypeSelect.value);
+                    }
                 });
                 routeSelect.addEventListener('change', (e) => {
                     getEl('manual-freight-wrapper').classList.toggle('hidden', e.target.value !== 'manual');

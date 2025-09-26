@@ -138,6 +138,19 @@
                             <label for="route" class="block text-sm font-medium text-gray-700 mb-1">Ruta (Flete / Tarifa)</label>
                             <select id="route"></select>
                         </div>
+
+                        <!-- Manual Freight Inputs -->
+                        <div id="manual-freight-wrapper" class="hidden space-y-4 mt-4 p-4 border rounded-lg bg-gray-50">
+                             <div id="manual-maritime-wrapper">
+                                <label for="manual-maritime-cost" class="block text-sm font-medium text-gray-700 mb-1">Costo Flete Manual (USD)</label>
+                                <input type="number" id="manual-maritime-cost" placeholder="Costo total del flete" step="0.01">
+                             </div>
+                             <div id="manual-air-wrapper" class="hidden">
+                                <label for="manual-air-rate" class="block text-sm font-medium text-gray-700 mb-1">Tarifa Manual por Kg (USD)</label>
+                                <input type="number" id="manual-air-rate" placeholder="Tarifa por kilo" step="0.01">
+                             </div>
+                        </div>
+
                         <button id="calculate-btn" class="btn btn-primary w-full mt-10">Calcular</button>
                     </div>
                 </div>
@@ -241,25 +254,31 @@
             
             function renderRoutes(speciesId, type) {
                 routeSelect.innerHTML = '';
+                let routes = [];
                 if (type === 'maritime') {
-                    const freights = window.APP_DATA.maritimeFreights.filter(f => f.speciesId === speciesId);
-                    routeSelect.innerHTML = freights.length > 0 ? '' : '<option>Sin fletes para esta especie</option>';
-                    freights.forEach(f => {
+                    routes = window.APP_DATA.maritimeFreights.filter(f => f.speciesId === speciesId);
+                    routeSelect.innerHTML = routes.length > 0 ? '' : '<option value="">Sin fletes para esta especie</option>';
+                    routes.forEach(f => {
                         const option = document.createElement('option');
                         option.value = f.id;
                         option.textContent = `${f.origin} -> ${f.destination} - $${f.cost.toLocaleString('en-US')}`;
                         routeSelect.appendChild(option);
                     });
                 } else { // air
-                    const rates = window.APP_DATA.airRates.filter(r => r.speciesId === speciesId);
-                    routeSelect.innerHTML = rates.length > 0 ? '' : '<option>Sin tarifas para esta especie</option>';
-                    rates.forEach(r => {
+                    routes = window.APP_DATA.airRates.filter(r => r.speciesId === speciesId);
+                    routeSelect.innerHTML = routes.length > 0 ? '' : '<option value="">Sin tarifas para esta especie</option>';
+                    routes.forEach(r => {
                         const option = document.createElement('option');
                         option.value = r.id;
                         option.textContent = `${r.origin} -> ${r.destination} - $${r.ratePerKg.toFixed(2)}/kg`;
                         routeSelect.appendChild(option);
                     });
                 }
+                // Add manual option at the end
+                const manualOption = document.createElement('option');
+                manualOption.value = 'manual';
+                manualOption.textContent = '--- Ingresar Flete/Tarifa Manual ---';
+                routeSelect.appendChild(manualOption);
             }
 
             function renderManagementLists() {
@@ -299,15 +318,37 @@
                 const type = shippingTypeSelect.value;
                 const selectedFormatId = parseInt(formatSelect.value);
                 const format = window.APP_DATA.formats.find(f => f.id === selectedFormatId);
-                const selectedRouteId = parseInt(routeSelect.value);
+                const selectedRouteValue = routeSelect.value;
                 const commission = parseFloat(getEl('commission').value) || 0;
                 const insuranceTotal = parseFloat(getEl('insurance-total').value) || 0;
 
-                if (!format || !selectedRouteId) return null;
+                if (!format) return null;
+
+                let route;
+                if (selectedRouteValue === 'manual') {
+                    if (type === 'maritime') {
+                        const manualCost = parseFloat(getEl('manual-maritime-cost').value);
+                        if (isNaN(manualCost) || manualCost <= 0) { alert('Ingrese un costo de flete manual válido.'); return null; }
+                        route = { id: 'manual', origin: 'Manual', destination: 'Manual', cost: manualCost };
+                    } else { // air
+                        const manualRate = parseFloat(getEl('manual-air-rate').value);
+                        if (isNaN(manualRate) || manualRate <= 0) { alert('Ingrese una tarifa aérea manual válida.'); return null; }
+                        route = { id: 'manual', origin: 'Manual', destination: 'Manual', ratePerKg: manualRate };
+                    }
+                } else {
+                    const selectedRouteId = parseInt(selectedRouteValue);
+                    if (!selectedRouteId) return null;
+                    if (type === 'maritime') {
+                        route = window.APP_DATA.maritimeFreights.find(f => f.id === selectedRouteId);
+                    } else {
+                        route = window.APP_DATA.airRates.find(r => r.id === selectedRouteId);
+                    }
+                }
+
+                if (!route) { alert('Seleccione una ruta de flete válida.'); return null; }
 
                 if (type === 'maritime') {
-                    const route = window.APP_DATA.maritimeFreights.find(f => f.id === selectedRouteId);
-                    if (!route || !format.boxesPerContainer) { alert('Faltan datos de FCL o de ruta marítima.'); return null; }
+                    if (!format.boxesPerContainer) { alert('El formato seleccionado no tiene datos de cajas por FCL.'); return null; }
                     const servicesTotal = parseFloat(getEl('services-total').value) || 0;
                     const extraCostsTotal = parseFloat(getEl('extra-costs-total').value) || 0;
                     return {
@@ -319,9 +360,8 @@
                         extraCosts: extraCostsTotal / format.boxesPerContainer
                     };
                 } else { // air
-                    const route = window.APP_DATA.airRates.find(r => r.id === selectedRouteId);
                     const boxes = parseInt(getEl('air-boxes').value);
-                    if (!route || !boxes || boxes <= 0) { alert('Faltan datos de tarifa aérea o número de cajas.'); return null; }
+                    if (!boxes || boxes <= 0) { alert('Faltan datos de tarifa aérea o número de cajas.'); return null; }
                     const clearance = (parseFloat(getEl('air-clearance').value) || 0) / boxes;
                     const cooler = (parseFloat(getEl('air-cooler').value) || 0) / boxes;
                     const dta = (parseFloat(getEl('air-dta').value) || 0) / boxes;
@@ -414,7 +454,6 @@
                             <span class="font-semibold border-t pt-1">Precio FOB Shipper:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobShipper)}</span>
                             </div><div class="border-t my-2"></div>`;
 
-                // --- Dynamic Labels for Final Results ---
                 let proveedorLabel = 'Precio Oferta Proveedor (FOB Shipper)';
                 let proveedorValue = data.fobShipper;
 
@@ -444,14 +483,21 @@
                 const type = shippingTypeSelect.value;
                 getEl('maritime-costs').classList.toggle('hidden', type !== 'maritime');
                 getEl('air-options').classList.toggle('hidden', type !== 'air');
-                // The freight manager sections are in the "Data Management" card, not the calculator itself
                 const maritimeFreightManager = document.getElementById('maritime-freight-manager');
                 const airRateManager = document.getElementById('air-rate-manager');
                 if(maritimeFreightManager) maritimeFreightManager.classList.toggle('hidden', type !== 'maritime');
                 if(airRateManager) airRateManager.classList.toggle('hidden', type !== 'air');
+
+                // Toggle manual input fields visibility
+                const manualMaritime = getEl('manual-maritime-wrapper');
+                const manualAir = getEl('manual-air-wrapper');
+                if(manualMaritime) manualMaritime.classList.toggle('hidden', type !== 'maritime');
+                if(manualAir) manualAir.classList.toggle('hidden', type !== 'air');
                 
                 renderRoutes(parseInt(speciesSelect.value), type);
                 getEl('results-card').classList.add('hidden');
+                // Hide manual freight wrapper initially
+                getEl('manual-freight-wrapper').classList.add('hidden');
             }
 
             function toggleCalculationBase() {
@@ -465,7 +511,6 @@
                 cifProveedorWrapper.classList.toggle('hidden', calcBase !== 'proveedor_cif');
                 cifClienteWrapper.classList.toggle('hidden', calcBase !== 'cliente_cif');
 
-                // Clear input values
                 getEl('fob-proveedor-cost').value = '';
                 getEl('cif-proveedor-cost').value = '';
                 getEl('cif-cliente-price').value = '';
@@ -474,7 +519,7 @@
             }
             
             function renderAllUI() {
-                const allSpeciesSelects = [speciesSelect]; // Main selectors
+                const allSpeciesSelects = [speciesSelect];
                 renderSpecies(allSpeciesSelects);
                 const selectedSpeciesId = parseInt(speciesSelect.value);
                 if (selectedSpeciesId) {
@@ -486,17 +531,18 @@
             
             // --- INITIALIZATION ---
             function initApp() {
-                // Setup UI event listeners
                 document.querySelectorAll('input[name="calculation-base"]').forEach(radio => radio.addEventListener('change', toggleCalculationBase));
                 speciesSelect.addEventListener('change', (e) => {
                     const speciesId = parseInt(e.target.value);
                     renderFormatsForSpecies(speciesId);
                     renderRoutes(speciesId, shippingTypeSelect.value);
                 });
+                routeSelect.addEventListener('change', (e) => {
+                    getEl('manual-freight-wrapper').classList.toggle('hidden', e.target.value !== 'manual');
+                });
                 getEl('calculate-btn').addEventListener('click', calculateAndDisplay);
                 shippingTypeSelect.addEventListener('change', toggleShippingMode);
-                                
-                // Initial UI setup
+                
                 toggleShippingMode();
                 toggleCalculationBase();
                 renderAllUI();
@@ -507,3 +553,4 @@
     </script>
 </body>
 </html>
+

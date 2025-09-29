@@ -172,6 +172,14 @@ window.APP_DATA = {
     "weightPerBox": 10.98,
     "boxesPerContainer": 1700,
     "boxesPerSkid": null
+  },
+  {
+    "id": 18,
+    "speciesId": 5,
+    "name": "11x450g",
+    "weightPerBox": 5.45,
+    "boxesPerContainer": null,
+    "boxesPerSkid": 500
   }
 ],
 
@@ -263,5 +271,3 @@ window.APP_DATA = {
 ]
 
 };
-
-

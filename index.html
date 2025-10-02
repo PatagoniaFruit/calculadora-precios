@@ -261,8 +261,7 @@
                         sel.appendChild(option);
                     });
                 });
-                // Add manual option at the end of the main species selector
-                 const manualOption = document.createElement('option');
+                const manualOption = document.createElement('option');
                 manualOption.value = 'manual';
                 manualOption.textContent = '--- Ingresar Especie/Formato Manual ---';
                 speciesSelect.appendChild(manualOption);
@@ -301,7 +300,6 @@
                         routeSelect.appendChild(option);
                     });
                 }
-                // Add manual option at the end
                 const manualOption = document.createElement('option');
                 manualOption.value = 'manual';
                 manualOption.textContent = '--- Ingresar Flete/Tarifa Manual ---';
@@ -495,20 +493,38 @@
                     <div class="col-span-2 my-2"></div>
                     <span>Precio FOB Cliente:</span><span class="font-semibold text-right">$ ${format(data.fobClient)}</span>`;
 
+                let otherCostsPerBox = data.insurance;
                 if (data.type === 'air') {
                     content += `<span>(-) Clearance:</span><span class="text-right">$ ${format(data.clearance)}</span>
                                 <span>(-) Cooler:</span><span class="text-right">$ ${format(data.cooler)}</span>
                                 <span>(-) DTA:</span><span class="text-right">$ ${format(data.dta)}</span>
                                 <span>(-) Handling:</span><span class="text-right">$ ${format(data.handling)}</span>`;
+                    otherCostsPerBox += data.clearance + data.cooler + data.dta + data.handling;
                 }
                  if (data.type === 'maritime') {
                     content += `<span>(-) Servicios:</span><span class="text-right">$ ${format(data.services)}</span>
                                 <span>(-) Costo Extra:</span><span class="text-right">$ ${format(data.extraCosts)}</span>`;
+                    otherCostsPerBox += data.services + data.extraCosts;
                  }
+                const commissionPerBox = data.fobClient * data.commission / 100;
                 content += `<span>(-) Seguro:</span><span class="text-right">$ ${format(data.insurance)}</span>
-                            <span>(-) Comisión (${data.commission}%):</span><span class="text-right">$ ${format(data.fobClient * data.commission / 100)}</span>
+                            <span>(-) Comisión (${data.commission}%):</span><span class="text-right">$ ${format(commissionPerBox)}</span>
                             <span class="font-semibold border-t pt-1">Precio FOB Shipper:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobShipper)}</span>
-                            </div><div class="border-t my-2"></div>`;
+                            </div>`;
+
+                // --- TOTALS SECTION ---
+                content += `<div class="border-t my-4"></div>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+                                <span class="font-semibold border-b pb-1 col-span-2 text-lg">Desglose de Costos Totales (para ${data.boxes} cajas)</span>
+                                <span>Total FOB Shipper:</span><span class="font-semibold text-right">$ ${format(data.fobShipper * data.boxes)}</span>
+                                <span>(+) Total Otros Costos:</span><span class="text-right">$ ${format(otherCostsPerBox * data.boxes)}</span>
+                                <span>(+) Total Comisión:</span><span class="text-right">$ ${format(commissionPerBox * data.boxes)}</span>
+                                <span class="font-semibold border-t pt-1">Total FOB Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobClient * data.boxes)}</span>
+                                <span>(+) Total Flete:</span><span class="text-right">$ ${format(data.freightPerBox * data.boxes)}</span>
+                                <span class="font-semibold border-t pt-1">Total CIF Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.cifClient * data.boxes)}</span>
+                            </div>
+                            <div class="border-t my-4"></div>`;
+
 
                 let proveedorLabel = 'Precio Oferta Proveedor (FOB Shipper)';
                 let proveedorValue = data.fobShipper;
@@ -518,7 +534,7 @@
                     proveedorValue = data.cifProveedorCost;
                 }
 
-                content += `<div class="grid grid-cols-2 gap-4 mt-4">
+                content += `<div class="grid grid-cols-2 gap-4 mt-2">
                                 <div class="text-center bg-blue-50 p-3 rounded-lg">
                                     <p class="text-lg">${proveedorLabel}</p>
                                     <p class="text-3xl font-bold text-blue-700">$${format(proveedorValue)}</p>
@@ -599,7 +615,7 @@
                         routeSelect.innerHTML = '<option value="manual">--- Ingresar Flete/Tarifa Manual ---</option>';
                         routeSelect.value = 'manual';
                         routeSelect.dispatchEvent(new Event('change'));
-                        toggleShippingMode(); // Update manual fields based on shipping type
+                        toggleShippingMode();
                     } else {
                         getEl('manual-product-wrapper').classList.add('hidden');
                         getEl('format-select-wrapper').classList.remove('hidden');
@@ -623,3 +639,4 @@
     </script>
 </body>
 </html>
+

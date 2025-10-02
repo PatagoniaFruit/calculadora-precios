@@ -180,9 +180,16 @@
                              </div>
                         </div>
 
-                        <button id="calculate-btn" class="btn btn-primary w-full mt-10">Agregar a la Tabla de Comparación</button>
+                        <button id="calculate-btn" class="btn btn-primary w-full mt-10">Calcular</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- Detailed Results Section -->
+            <div id="detailed-results-card" class="card hidden">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Desglose del Último Cálculo</h2>
+                <div id="detailed-results-content" class="space-y-3"></div>
+                <button id="add-to-table-btn" class="btn btn-secondary w-full mt-6">Agregar a la Tabla de Comparación</button>
             </div>
 
             <!-- Results Table Section -->
@@ -263,6 +270,8 @@
                     airRates: []
                 };
             }
+
+            let lastCalculationData = null;
 
             // --- DOM ELEMENTS ---
             const getEl = (id) => document.getElementById(id);
@@ -451,16 +460,16 @@
                 }
             }
 
-            function calculateAndAddToTable() {
+            function performCalculation() {
                 const calcBase = document.querySelector('input[name="calculation-base"]:checked').value;
                 const inputs = getInputs();
-                if (!inputs) return;
+                if (!inputs) return null;
                 
                 let results = { calcBase: calcBase, entryValue: 0 };
 
                 if (calcBase === 'proveedor_fob') {
                     const baseCostPerBox = parseFloat(getEl('fob-proveedor-cost').value);
-                    if (isNaN(baseCostPerBox) || baseCostPerBox < 0) { alert('Ingresa un costo de proveedor válido.'); return; }
+                    if (isNaN(baseCostPerBox) || baseCostPerBox < 0) { alert('Ingresa un costo de proveedor válido.'); return null; }
                     
                     results.entryValue = baseCostPerBox;
                     results.fobShipper = baseCostPerBox;
@@ -473,7 +482,7 @@
 
                 } else if (calcBase === 'proveedor_cif') {
                     const cifProveedorCost = parseFloat(getEl('cif-proveedor-cost').value);
-                    if (isNaN(cifProveedorCost) || cifProveedorCost < 0) { alert('Ingresa un costo CIF de proveedor válido.'); return; }
+                    if (isNaN(cifProveedorCost) || cifProveedorCost < 0) { alert('Ingresa un costo CIF de proveedor válido.'); return null; }
                     
                     results.entryValue = cifProveedorCost;
                     results.cifProveedorCost = cifProveedorCost;
@@ -487,24 +496,103 @@
 
                 } else { // 'cliente_cif'
                     const cifPrice = parseFloat(getEl('cif-cliente-price').value);
-                    if (isNaN(cifPrice) || cifPrice <= 0) { alert('Ingresa un precio de cliente válido.'); return; }
+                    if (isNaN(cifPrice) || cifPrice <= 0) { alert('Ingresa un precio de cliente válido.'); return null; }
                     
                     results.entryValue = cifPrice;
                     results.cifClient = cifPrice;
                     results.fobClient = results.cifClient - inputs.freightPerBox;
-                    const commissionValue = results.fobClient * (inputs.commission / 100);
                     
                     let allOtherCosts = inputs.insurance;
                      if(inputs.type === 'maritime') allOtherCosts += inputs.services + inputs.extraCosts;
                     else allOtherCosts += inputs.clearance + inputs.cooler + inputs.dta + inputs.handling;
-
+                    
+                    const commissionValue = results.fobClient * (inputs.commission / 100);
                     results.fobShipper = results.fobClient - commissionValue - allOtherCosts;
                 }
                 
-                addResultsToTable({ ...inputs, ...results });
+                return { ...inputs, ...results };
+            }
+
+            function displayDetailedResult(data) {
+                const resultsCard = getEl('detailed-results-card');
+                const resultsContent = getEl('detailed-results-content');
+                const format = (v) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                let speciesName;
+                 if (data.format.speciesId === 'manual') {
+                    speciesName = getEl('manual-species-name').value || 'Especie Manual';
+                } else {
+                    speciesName = window.APP_DATA.species.find(s => s.id === data.format.speciesId)?.name || 'N/A';
+                }
+
+                let content = `<p><strong>Resumen para:</strong> ${speciesName} (${data.format.name}) a ${data.route.destination}</p><div class="border-t my-2"></div>`;
+                
+                content += `<div class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+                    <span class="font-semibold border-b pb-1 col-span-2 text-lg">Desglose de Costos por Caja</span>
+                    <span>Precio FOB Cliente:</span><span class="font-semibold text-right">$ ${format(data.fobClient)}</span>
+                    <span>(-) Flete:</span><span class="text-right">$ ${format(data.freightPerBox)}</span>
+                    <span class="font-semibold border-t pt-1">Precio CIF Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.cifClient)}</span>
+                    <div class="col-span-2 my-2"></div>
+                    <span>Precio FOB Cliente:</span><span class="font-semibold text-right">$ ${format(data.fobClient)}</span>`;
+
+                let otherCostsPerBox = data.insurance;
+                if (data.type === 'air') {
+                    content += `<span>(-) Clearance:</span><span class="text-right">$ ${format(data.clearance)}</span>
+                                <span>(-) Cooler:</span><span class="text-right">$ ${format(data.cooler)}</span>
+                                <span>(-) DTA:</span><span class="text-right">$ ${format(data.dta)}</span>
+                                <span>(-) Handling:</span><span class="text-right">$ ${format(data.handling)}</span>`;
+                    otherCostsPerBox += data.clearance + data.cooler + data.dta + data.handling;
+                }
+                 if (data.type === 'maritime') {
+                    content += `<span>(-) Servicios:</span><span class="text-right">$ ${format(data.services)}</span>
+                                <span>(-) Costo Extra:</span><span class="text-right">$ ${format(data.extraCosts)}</span>`;
+                    otherCostsPerBox += data.services + data.extraCosts;
+                 }
+                const commissionPerBox = data.fobClient * data.commission / 100;
+                content += `<span>(-) Seguro:</span><span class="text-right">$ ${format(data.insurance)}</span>
+                            <span>(-) Comisión (${data.commission}%):</span><span class="text-right">$ ${format(commissionPerBox)}</span>
+                            <span class="font-semibold border-t pt-1">Precio FOB Shipper:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobShipper)}</span>
+                            </div>`;
+
+                content += `<div class="border-t my-4"></div>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+                                <span class="font-semibold border-b pb-1 col-span-2 text-lg">Desglose de Costos Totales (para ${data.boxes} cajas)</span>
+                                <span>Total FOB Shipper:</span><span class="font-semibold text-right">$ ${format(data.fobShipper * data.boxes)}</span>
+                                <span>(+) Total Otros Costos:</span><span class="text-right">$ ${format(otherCostsPerBox * data.boxes)}</span>
+                                <span>(+) Total Comisión:</span><span class="text-right">$ ${format(commissionPerBox * data.boxes)}</span>
+                                <span class="font-semibold border-t pt-1">Total FOB Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobClient * data.boxes)}</span>
+                                <span>(+) Total Flete:</span><span class="text-right">$ ${format(data.freightPerBox * data.boxes)}</span>
+                                <span class="font-semibold border-t pt-1">Total CIF Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.cifClient * data.boxes)}</span>
+                            </div>
+                            <div class="border-t my-4"></div>`;
+
+
+                let proveedorLabel = 'Precio Oferta Proveedor (FOB Shipper)';
+                let proveedorValue = data.fobShipper;
+
+                if (data.calcBase === 'proveedor_cif') {
+                    proveedorLabel = 'Precio Oferta Proveedor (CIF)';
+                    proveedorValue = data.cifProveedorCost;
+                }
+
+                content += `<div class="grid grid-cols-2 gap-4 mt-2">
+                                <div class="text-center bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-lg">${proveedorLabel}</p>
+                                    <p class="text-3xl font-bold text-blue-700">$${format(proveedorValue)}</p>
+                                </div>
+                                 <div class="text-center bg-green-50 p-3 rounded-lg">
+                                    <p class="text-lg">Precio Oferta Cliente (CIF/CFR)</p>
+                                    <p class="text-3xl font-bold text-green-700">$${format(data.cifClient)}</p>
+                                    <p class="text-sm mt-1">(FOB: $${format(data.fobClient)})</p>
+                                </div>
+                            </div>`;
+
+                resultsContent.innerHTML = content;
+                resultsCard.classList.remove('hidden');
             }
             
             function addResultsToTable(data) {
+                if (!data) return;
                 const tableCard = getEl('results-table-card');
                 const tbody = getEl('results-tbody');
                 const format = (v) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -645,7 +733,14 @@
                 routeSelect.addEventListener('change', (e) => {
                     getEl('manual-freight-wrapper').classList.toggle('hidden', e.target.value !== 'manual');
                 });
-                getEl('calculate-btn').addEventListener('click', calculateAndAddToTable);
+                getEl('calculate-btn').addEventListener('click', () => {
+                    const data = performCalculation();
+                    if(data) {
+                        lastCalculationData = data;
+                        displayDetailedResult(data);
+                    }
+                });
+                getEl('add-to-table-btn').addEventListener('click', () => addResultsToTable(lastCalculationData));
                 getEl('clear-table-btn').addEventListener('click', clearTable);
                 getEl('copy-table-btn').addEventListener('click', copyTable);
                 shippingTypeSelect.addEventListener('change', toggleShippingMode);

@@ -28,6 +28,13 @@
         input, select {
             width: 100%; padding: 0.5rem; border-radius: 0.375rem; border: 1px solid #d1d5db;
         }
+        .price-box {
+            background-color: #f9fafb; /* Lighter gray */
+            border: 1px solid #e5e7eb; /* Light gray border */
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 p-4 sm:p-8">
@@ -385,8 +392,8 @@
                 if (selectedSpeciesValue === 'manual') {
                     const weightPerBox = parseFloat(getEl('manual-weight').value) || 0;
                     const boxesPerContainer = parseInt(getEl('manual-boxes-fcl').value) || null;
-                    if (type === 'maritime' && !boxesPerContainer) {
-                        alert('Ingrese el número de cajas por contenedor para el producto manual.');
+                    if (type === 'maritime' && (!boxesPerContainer || boxesPerContainer <= 0)) {
+                        alert('Ingrese un número válido de cajas por contenedor para el producto manual.');
                         return null;
                     }
                     if (type === 'air' && weightPerBox <= 0) {
@@ -447,6 +454,7 @@
                 } else { // air
                     const boxes = parseInt(getEl('air-boxes').value);
                     if (!boxes || boxes <= 0) { alert('Faltan datos del número de cajas del envío.'); return null; }
+                     if (format.weightPerBox <= 0) { alert('El formato seleccionado no tiene un peso por caja válido para cálculo aéreo.'); return null; }
                     const clearance = (parseFloat(getEl('air-clearance').value) || 0) / boxes;
                     const cooler = (parseFloat(getEl('air-cooler').value) || 0) / boxes;
                     const dta = (parseFloat(getEl('air-dta').value) || 0) / boxes;
@@ -510,6 +518,9 @@
                     results.fobShipper = results.fobClient - commissionValue - allOtherCosts;
                 }
                 
+                // Calculate CIF Shipper
+                results.cifShipper = results.fobShipper + inputs.freightPerBox;
+
                 return { ...inputs, ...results };
             }
 
@@ -527,6 +538,29 @@
 
                 let content = `<p><strong>Resumen para:</strong> ${speciesName} (${data.format.name}) a ${data.route.destination}</p><div class="border-t my-2"></div>`;
                 
+                // --- Price Breakdown Section ---
+                content += `<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-2 mb-4">
+                                <div class="price-box">
+                                    <p class="text-sm font-medium text-gray-500">Precio FOB Shipper</p>
+                                    <p class="text-xl font-bold text-gray-800">$${format(data.fobShipper)}</p>
+                                </div>
+                                 <div class="price-box">
+                                    <p class="text-sm font-medium text-gray-500">Precio CIF Shipper</p>
+                                    <p class="text-xl font-bold text-gray-800">$${format(data.cifShipper)}</p>
+                                </div>
+                                <div class="price-box">
+                                    <p class="text-sm font-medium text-gray-500">Precio FOB Cliente</p>
+                                    <p class="text-xl font-bold text-gray-800">$${format(data.fobClient)}</p>
+                                </div>
+                                 <div class="price-box bg-green-50 border-green-200">
+                                    <p class="text-sm font-medium text-green-700">Precio CIF Cliente</p>
+                                    <p class="text-xl font-bold text-green-700">$${format(data.cifClient)}</p>
+                                </div>
+                            </div>`;
+                            
+                content += `<div class="border-t my-4"></div>`;
+
+                // --- Cost Breakdown per Box ---
                 content += `<div class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
                     <span class="font-semibold border-b pb-1 col-span-2 text-lg">Desglose de Costos por Caja</span>
                     <span>Precio FOB Cliente:</span><span class="font-semibold text-right">$ ${format(data.fobClient)}</span>
@@ -554,6 +588,7 @@
                             <span class="font-semibold border-t pt-1">Precio FOB Shipper:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobShipper)}</span>
                             </div>`;
 
+                // --- TOTALS SECTION ---
                 content += `<div class="border-t my-4"></div>
                             <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
                                 <span class="font-semibold border-b pb-1 col-span-2 text-lg">Desglose de Costos Totales (para ${data.boxes} cajas)</span>
@@ -563,29 +598,8 @@
                                 <span class="font-semibold border-t pt-1">Total FOB Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobClient * data.boxes)}</span>
                                 <span>(+) Total Flete:</span><span class="text-right">$ ${format(data.freightPerBox * data.boxes)}</span>
                                 <span class="font-semibold border-t pt-1">Total CIF Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.cifClient * data.boxes)}</span>
-                            </div>
-                            <div class="border-t my-4"></div>`;
-
-
-                let proveedorLabel = 'Precio Oferta Proveedor (FOB Shipper)';
-                let proveedorValue = data.fobShipper;
-
-                if (data.calcBase === 'proveedor_cif') {
-                    proveedorLabel = 'Precio Oferta Proveedor (CIF)';
-                    proveedorValue = data.cifProveedorCost;
-                }
-
-                content += `<div class="grid grid-cols-2 gap-4 mt-2">
-                                <div class="text-center bg-blue-50 p-3 rounded-lg">
-                                    <p class="text-lg">${proveedorLabel}</p>
-                                    <p class="text-3xl font-bold text-blue-700">$${format(proveedorValue)}</p>
-                                </div>
-                                 <div class="text-center bg-green-50 p-3 rounded-lg">
-                                    <p class="text-lg">Precio Oferta Cliente (CIF/CFR)</p>
-                                    <p class="text-3xl font-bold text-green-700">$${format(data.cifClient)}</p>
-                                    <p class="text-sm mt-1">(FOB: $${format(data.fobClient)})</p>
-                                </div>
                             </div>`;
+
 
                 resultsContent.innerHTML = content;
                 resultsCard.classList.remove('hidden');
@@ -682,6 +696,7 @@
                 
                 renderRoutes(parseInt(speciesSelect.value), type);
                 getEl('manual-freight-wrapper').classList.add('hidden');
+                 getEl('detailed-results-card').classList.add('hidden'); // Hide detailed results on change
             }
 
             function toggleCalculationBase() {
@@ -698,15 +713,23 @@
                 getEl('fob-proveedor-cost').value = '';
                 getEl('cif-proveedor-cost').value = '';
                 getEl('cif-cliente-price').value = '';
+                getEl('detailed-results-card').classList.add('hidden'); // Hide detailed results on change
             }
             
             function renderAllUI() {
                 const allSpeciesSelects = [speciesSelect];
                 renderSpecies(allSpeciesSelects);
                 const selectedSpeciesId = parseInt(speciesSelect.value);
-                if (selectedSpeciesId) {
+                if (selectedSpeciesId && speciesSelect.value !== 'manual') { // Don't render formats/routes if manual is selected
                     renderFormatsForSpecies(selectedSpeciesId);
                     renderRoutes(selectedSpeciesId, shippingTypeSelect.value);
+                } else if (speciesSelect.value === 'manual') {
+                    // Handle initial state if manual product is selected by default (though unlikely)
+                    getEl('manual-product-wrapper').classList.remove('hidden');
+                    getEl('format-select-wrapper').classList.add('hidden');
+                    routeSelect.innerHTML = '<option value="manual">--- Ingresar Flete/Tarifa Manual ---</option>';
+                    routeSelect.value = 'manual';
+                    toggleShippingMode(); // Adjust manual fields visibility
                 }
                 renderManagementLists();
             }
@@ -720,23 +743,26 @@
                         getEl('manual-product-wrapper').classList.remove('hidden');
                         getEl('format-select-wrapper').classList.add('hidden');
                         routeSelect.innerHTML = '<option value="manual">--- Ingresar Flete/Tarifa Manual ---</option>';
-                        routeSelect.value = 'manual';
-                        routeSelect.dispatchEvent(new Event('change'));
-                        toggleShippingMode();
+                        routeSelect.value = 'manual'; // Force manual freight
+                        routeSelect.dispatchEvent(new Event('change')); // Trigger manual freight visibility
+                        toggleShippingMode(); // Adjust manual product fields based on shipping type
                     } else {
                         getEl('manual-product-wrapper').classList.add('hidden');
                         getEl('format-select-wrapper').classList.remove('hidden');
                         renderFormatsForSpecies(parseInt(speciesId));
                         renderRoutes(parseInt(speciesId), shippingTypeSelect.value);
+                         getEl('manual-freight-wrapper').classList.add('hidden'); // Hide manual freight if switching back
                     }
+                     getEl('detailed-results-card').classList.add('hidden'); // Hide detailed results on change
                 });
                 routeSelect.addEventListener('change', (e) => {
                     getEl('manual-freight-wrapper').classList.toggle('hidden', e.target.value !== 'manual');
+                     getEl('detailed-results-card').classList.add('hidden'); // Hide detailed results on change
                 });
                 getEl('calculate-btn').addEventListener('click', () => {
                     const data = performCalculation();
                     if(data) {
-                        lastCalculationData = data;
+                        lastCalculationData = data; // Store data for adding to table later
                         displayDetailedResult(data);
                     }
                 });

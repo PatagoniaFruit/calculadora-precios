@@ -201,8 +201,8 @@
                            <div>
                                 <label for="commission-base">Base de Comisión</label>
                                 <select id="commission-base" class="mt-1">
-                                    <option value="fob_cliente">FOB Cliente</option>
                                     <option value="fob_shipper">FOB Shipper</option>
+                                    <option value="fob_cliente">FOB Cliente</option>
                                     <option value="cif_cliente">CIF Cliente</option>
                                 </select>
                            </div>
@@ -633,7 +633,8 @@
                     if (results.fobClient < 0) console.warn("FOB Cliente calculado es negativo."); 
 
                     if (inputs.commissionBase === 'fob_shipper') {
-                         if (1 + C <= 0) { alert('Error en cálculo de comisión base FOB Shipper.'); return null; } // Should not happen with positive C
+                         // Avoid division by zero or negative if commission is >= 100%
+                         if (1 + C <= 0) { alert('Error en cálculo de comisión base FOB Shipper (comisión >= -100%).'); return null; } 
                         results.fobShipper = (results.fobClient - O) / (1 + C);
                         results.commissionValuePerBox = results.fobShipper * C;
                     } else if (inputs.commissionBase === 'cif_cliente') {
@@ -711,7 +712,9 @@
                                 <span>(+) Costo Extra:</span><span class="text-right">$ ${format(data.extraCosts)}</span>`;
                     otherCostsPerBox += data.services + data.extraCosts;
                  }
-                content += `<span>(+) Comisión (${data.commission}% sobre ${data.commissionBase.replace('_',' ')}):</span><span class="text-right">$ ${format(data.commissionValuePerBox)}</span>
+                 // Format commission base label
+                 const commissionBaseLabel = data.commissionBase.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()); // Capitalize words
+                content += `<span>(+) Comisión (${data.commission}% sobre ${commissionBaseLabel}):</span><span class="text-right">$ ${format(data.commissionValuePerBox)}</span>
                             <span class="font-semibold border-t pt-1">Precio FOB Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.fobClient)}</span>
                             <span>(+) Flete:</span><span class="text-right">$ ${format(data.freightPerBox)}</span>
                              <span class="font-semibold border-t pt-1">Precio CIF Cliente:</span><span class="font-semibold text-right border-t pt-1">$ ${format(data.cifClient)}</span>
@@ -872,6 +875,7 @@
                      toggleShippingMode();
                 } else {
                      // Ensure routes start with prompt if no species is selected
+                     formatSelect.innerHTML = '<option value="">Seleccione...</option>'; // Clear formats too
                      routeSelect.innerHTML = '<option value="">Seleccione Ruta...</option>';
                       const manualOption = document.createElement('option');
                       manualOption.value = 'manual';

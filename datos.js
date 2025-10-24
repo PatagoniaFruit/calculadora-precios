@@ -170,7 +170,7 @@ window.APP_DATA = {
     "speciesId": 3,
     "name": "1x8,2 Kg",
     "weightPerBox": 10.98,
-    "boxesPerContainer": 1700,
+    "boxesPerContainer": 2280,
     "boxesPerSkid": null
   },
   {
@@ -271,3 +271,4 @@ window.APP_DATA = {
 ]
 
 };
+

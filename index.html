@@ -17,7 +17,7 @@
         }
         .btn {
             display: inline-block; padding: 0.625rem 1.25rem; /* Adjusted padding */ border-radius: 0.375rem; /* rounded-md */
-            font-weight: 500; /* Medium weight */ text-align: center; transition: background-color 0.2s, box-shadow 0.2s; 
+            font-weight: 500; /* Medium weight */ text-align: center; transition: background-color 0.2s, box-shadow 0.2s;
             cursor: pointer; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* Subtle shadow */
         }
         .btn-primary { background-color: #4f46e5; /* Indigo 600 */ color: white; }
@@ -27,7 +27,7 @@
         .btn-danger { background-color: #ef4444; /* Red 500 */ color: white; }
         .btn-danger:hover { background-color: #dc2626; /* Red 600 */ box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
         input[type="number"], input[type="text"], select {
-            width: 100%; padding: 0.5rem 0.75rem; /* py-2 px-3 */ border-radius: 0.375rem; /* rounded-md */ 
+            width: 100%; padding: 0.5rem 0.75rem; /* py-2 px-3 */ border-radius: 0.375rem; /* rounded-md */
             border: 1px solid #d1d5db; /* Gray 300 */ background-color: #fff;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
@@ -115,7 +115,7 @@
                         <option value="air">Aéreo</option>
                     </select>
                 </div>
-                
+
                 <div class="mb-8 p-4 calc-base-bg rounded-lg border border-indigo-200">
                     <label class="block text-sm font-medium text-gray-900 mb-3">Punto de Partida del Cálculo</label>
                     <div class="flex flex-wrap items-center">
@@ -175,7 +175,7 @@
                                 <input type="number" id="manual-weight" step="0.01" placeholder="Ej: 8.19" class="text-sm mt-1">
                             </div>
                         </div>
-                        
+
                         <div class="mb-4">
                             <label for="variety-caliber">Variedad / Calibre (Opcional)</label>
                             <input type="text" id="variety-caliber" placeholder="Ej: Duke / 18mm" class="mt-1">
@@ -835,9 +835,15 @@
                      manualOption.value = 'manual';
                      manualOption.textContent = '--- Ingresar Flete/Tarifa Manual ---';
                      routeSelect.appendChild(manualOption);
+                } else if (speciesSelect.value === 'manual'){ // If manual species is selected
+                     routeSelect.innerHTML = '<option value="manual">--- Ingresar Flete/Tarifa Manual ---</option>'; // Force manual
+                     routeSelect.value = 'manual';
+                     getEl('manual-freight-wrapper').classList.remove('hidden'); // Show manual freight wrapper
                 }
-                // Reset manual freight visibility
-                getEl('manual-freight-wrapper').classList.add('hidden');
+                // Reset manual freight visibility only if not manual species
+                if(speciesSelect.value !== 'manual') {
+                    getEl('manual-freight-wrapper').classList.add('hidden');
+                }
                  getEl('detailed-results-card').classList.add('hidden'); // Hide detailed results on change
             }
 
@@ -896,8 +902,9 @@
                         getEl('format-select-wrapper').classList.add('hidden');
                         routeSelect.innerHTML = '<option value="manual">--- Ingresar Flete/Tarifa Manual ---</option>';
                         routeSelect.value = 'manual'; // Force manual freight
-                        routeSelect.dispatchEvent(new Event('change')); // Trigger manual freight visibility
-                        toggleShippingMode(); // Adjust manual product fields based on shipping type
+                        // Manually trigger the visibility of the freight wrapper
+                        getEl('manual-freight-wrapper').classList.remove('hidden');
+                        toggleShippingMode(); // Adjust manual product AND freight fields based on shipping type
                     } else if (speciesId){ // Check if a valid species ID is selected
                         getEl('manual-product-wrapper').classList.add('hidden');
                         getEl('format-select-wrapper').classList.remove('hidden');

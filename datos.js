@@ -28,10 +28,6 @@ window.APP_DATA = {
     "id": 5,
     "name": "Espárragos"
   },
-  {
-    "id": 6,
-    "name": "Aceite de Oliva"
-  }
 ],
 
   // 2. LISTA DE FORMATOS DE EMPAQUE
@@ -271,4 +267,5 @@ window.APP_DATA = {
 ]
 
 };
+
 
